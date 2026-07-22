@@ -14,7 +14,7 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           xcodegen generate
-      - name: Set credentials, revoke stale certs, fetch signing files
+      - name: Set credentials, generate cert key, fetch signing files
         script: |
           cat > /tmp/AuthKey.p8 << 'ENDOFKEY'
           -----BEGIN PRIVATE KEY-----
@@ -28,27 +28,13 @@ workflows:
           export APP_STORE_CONNECT_KEY_IDENTIFIER="ML292A3H9X"
           export APP_STORE_CONNECT_PRIVATE_KEY="$(cat /tmp/AuthKey.p8)"
           keychain initialize
-          # List and revoke existing distribution certificates
-          echo "Checking for existing distribution certificates..."
-          CERTS=$(app-store-connect certificates list \
-            --type IOS_DISTRIBUTION \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
-            --json 2>/dev/null || echo "[]")
-          echo "$CERTS"
-          CERT_IDS=$(echo "$CERTS" | python3 -c "import sys,json; data=json.load(sys.stdin); [print(c['id']) for c in data]" 2>/dev/null || echo "")
-          for id in $CERT_IDS; do
-            echo "Revoking existing certificate: $id"
-            app-store-connect certificates delete "$id" \
-              --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-              --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-              --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" || true
-          done
-          # Now fetch signing files with --create (will create fresh cert + profile)
+          # Generate a private key for the code signing certificate CSR
+          openssl genrsa -out /tmp/cert_key.pem 2048
+          # Fetch signing files, providing the certificate key so the cert can be saved
           app-store-connect fetch-signing-files $BUNDLE_ID \
             --type IOS_APP_STORE \
             --create \
+            --certificate-key @file:/tmp/cert_key.pem \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
