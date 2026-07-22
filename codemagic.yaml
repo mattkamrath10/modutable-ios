@@ -3,8 +3,6 @@ workflows:
     name: MODU/TABLE iOS App Store
     max_build_duration: 30
     environment:
-      groups:
-        - app_store_credentials
       vars:
         BUNDLE_ID: com.modutable.app
       xcode: latest
@@ -16,17 +14,21 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           xcodegen generate
-      - name: Initialize keychain for code signing
+      - name: Set up App Store Connect credentials and code signing
         script: |
+          export APP_STORE_CONNECT_ISSUER_ID="69c32014-81c0-4654-8dc5-7fd1cfb07338"
+          export APP_STORE_CONNECT_KEY_IDENTIFIER="ML292A3H9X"
+          printf '%s\n' \
+            '-----BEGIN PRIVATE KEY-----' \
+            'MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ' \
+            'hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k' \
+            '5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy' \
+            'YZPr8F8Z' \
+            '-----END PRIVATE KEY-----' > /tmp/authkey.p8
+          export APP_STORE_CONNECT_PRIVATE_KEY=$(cat /tmp/authkey.p8)
           keychain initialize
-      - name: Fetch App Store signing files (create if needed)
-        script: |
           app-store-connect fetch-signing-files $BUNDLE_ID --type IOS_APP_STORE --create
-      - name: Add certificates to keychain
-        script: |
           keychain add-certificates
-      - name: Apply code signing profiles to Xcode project
-        script: |
           cd $CM_BUILD_DIR
           xcode-project use-profiles
       - name: Build IPA
