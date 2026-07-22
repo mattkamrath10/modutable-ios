@@ -5,9 +5,8 @@ workflows:
     environment:
       groups:
         - app_store_credentials
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.modutable.app
+      vars:
+        BUNDLE_ID: com.modutable.app
       xcode: latest
     scripts:
       - name: Install XcodeGen
@@ -20,9 +19,9 @@ workflows:
       - name: Initialize keychain for code signing
         script: |
           keychain initialize
-      - name: Fetch App Store signing files
+      - name: Fetch App Store signing files (create if needed)
         script: |
-          app-store-connect fetch-signing-files com.modutable.app --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files $BUNDLE_ID --type IOS_APP_STORE --create
       - name: Add certificates to keychain
         script: |
           keychain add-certificates
