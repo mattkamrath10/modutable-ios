@@ -39,14 +39,47 @@ workflows:
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
           keychain add-certificates
-          cd $CM_BUILD_DIR
-          xcode-project use-profiles
-      - name: Build IPA
+      - name: Build IPA with explicit signing
         script: |
           cd $CM_BUILD_DIR
-          xcode-project build-ipa \
-            --project MODUTABLE.xcodeproj \
-            --scheme MODUTABLE
+          # Find the provisioning profile UUID
+          PROFILE_PATH=$(ls ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision 2>/dev/null | head -1)
+          if [ -z "$PROFILE_PATH" ]; then
+            echo "ERROR: No provisioning profile found"
+            exit 1
+          fi
+          UUID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract UUID raw -)
+          echo "Using provisioning profile UUID: $UUID"
+          # Archive with explicit profile
+          xcodebuild -project MODUTABLE.xcodeproj \
+            -scheme MODUTABLE \
+            -archivePath build/MODUTABLE.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE="$UUID" \
+            DEVELOPMENT_TEAM=8FJX2NBYXT \
+            COMPILER_INDEX_STORE_ENABLE=NO
+          # Create export options plist
+          cat > /tmp/exportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>teamID</key>
+              <string>8FJX2NBYXT</string>
+              <key>uploadSymbols</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          # Export IPA
+          xcodebuild -exportArchive \
+            -archivePath build/MODUTABLE.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist /tmp/exportOptions.plist
     artifacts:
       - build/ipa/*.ipa
     publishing:
