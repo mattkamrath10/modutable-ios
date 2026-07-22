@@ -46,9 +46,7 @@ workflows:
           cd $CM_BUILD_DIR
           xcode-project build-ipa \
             --project MODUTABLE.xcodeproj \
-            --scheme MODUTABLE \
-            --archive-path build/MODUTABLE.xcarchive \
-            --export-path build/ipa
+            --scheme MODUTABLE
     artifacts:
       - build/ipa/*.ipa
     publishing:
