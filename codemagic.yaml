@@ -17,6 +17,19 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           xcodegen generate
+      - name: Initialize keychain for code signing
+        script: |
+          keychain initialize
+      - name: Fetch App Store signing files
+        script: |
+          app-store-connect fetch-signing-files com.modutable.app --type IOS_APP_STORE --create
+      - name: Add certificates to keychain
+        script: |
+          keychain add-certificates
+      - name: Apply code signing profiles to Xcode project
+        script: |
+          cd $CM_BUILD_DIR
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           cd $CM_BUILD_DIR
