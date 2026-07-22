@@ -62,7 +62,7 @@ workflows:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="$UUID" \
-            DEVELOPMENT_TEAM=8FJX2NBYXT \
+            DEVELOPMENT_TEAM=8FJX2N8YXT \
             COMPILER_INDEX_STORE_ENABLE=NO
           # Create export options plist
           cat > /tmp/exportOptions.plist << 'EOF'
@@ -73,7 +73,7 @@ workflows:
               <key>method</key>
               <string>app-store</string>
               <key>teamID</key>
-              <string>8FJX2NBYXT</string>
+              <string>8FJX2N8YXT</string>
               <key>uploadSymbols</key>
               <true/>
           </dict>
