@@ -3,6 +3,8 @@ workflows:
     name: MODU/TABLE iOS App Store
     max_build_duration: 30
     environment:
+      groups:
+        - app_store_credentials
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.modutable.app
@@ -27,13 +29,7 @@ workflows:
       - build/ipa/*.ipa
     publishing:
       app_store_connect:
-        api_key: |
-          -----BEGIN PRIVATE KEY-----
-          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ
-          hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k
-          5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy
-          YZPr8F8Z
-          -----END PRIVATE KEY-----
-        key_id: ML292A3H9X
-        issuer_id: 69c32014-81c0-4654-8dc5-7fd1cfb07338
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_for_review: false
