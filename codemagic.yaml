@@ -14,20 +14,30 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           xcodegen generate
-      - name: Set up App Store Connect credentials and code signing
+      - name: Set credentials and fetch signing files
         script: |
+          cat > /tmp/AuthKey.p8 << 'ENDOFKEY'
+          -----BEGIN PRIVATE KEY-----
+          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ
+          hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k
+          5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy
+          YZPr8F8Z
+          -----END PRIVATE KEY-----
+          ENDOFKEY
+          unset APP_STORE_CONNECT_PRIVATE_KEY
+          unset APP_STORE_PRIVATE_KEY
+          unset APP_STORE_PRIVATE_KEY_2
+          unset APP_STORE_PRIVATE_KEY_3
           export APP_STORE_CONNECT_ISSUER_ID="69c32014-81c0-4654-8dc5-7fd1cfb07338"
           export APP_STORE_CONNECT_KEY_IDENTIFIER="ML292A3H9X"
-          printf '%s\n' \
-            '-----BEGIN PRIVATE KEY-----' \
-            'MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ' \
-            'hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k' \
-            '5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy' \
-            'YZPr8F8Z' \
-            '-----END PRIVATE KEY-----' > /tmp/authkey.p8
-          export APP_STORE_CONNECT_PRIVATE_KEY=$(cat /tmp/authkey.p8)
+          export APP_STORE_CONNECT_PRIVATE_KEY="$(cat /tmp/AuthKey.p8)"
           keychain initialize
-          app-store-connect fetch-signing-files $BUNDLE_ID --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files $BUNDLE_ID \
+            --type IOS_APP_STORE \
+            --create \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
           keychain add-certificates
           cd $CM_BUILD_DIR
           xcode-project use-profiles
