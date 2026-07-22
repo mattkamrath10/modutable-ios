@@ -15,10 +15,6 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           xcodegen generate
-      - name: Set App Store Connect credentials
-        script: |
-          export APP_STORE_ISSUER_ID="69c32014-81c0-4654-8dc5-7fd1cfb07338"
-          export APP_STORE_KEY_ID="ML292A3H9X"
       - name: Build IPA
         script: |
           cd $CM_BUILD_DIR
@@ -31,13 +27,13 @@ workflows:
       - build/ipa/*.ipa
     publishing:
       app_store_connect:
-        issuer_id: 69c32014-81c0-4654-8dc5-7fd1cfb07338
-        key_id: ML292A3H9X
-        private_key: |
+        api_key: |
           -----BEGIN PRIVATE KEY-----
           MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ
           hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k
           5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy
           YZPr8F8Z
           -----END PRIVATE KEY-----
+        key_id: ML292A3H9X
+        issuer_id: 69c32014-81c0-4654-8dc5-7fd1cfb07338
         submit_for_review: false
