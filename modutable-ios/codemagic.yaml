@@ -1,0 +1,37 @@
+workflows:
+  ios-app-store:
+    name: MODU/TABLE iOS App Store
+    max_build_duration: 30
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.modutable.app
+      vars:
+        APP_STORE_ISSUER_ID: $APP_STORE_ISSUER_ID
+        APP_STORE_KEY_ID: $APP_STORE_KEY_ID
+        APP_STORE_PRIVATE_KEY: $APP_STORE_PRIVATE_KEY
+      xcode: latest
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+      - name: Generate Xcode project
+        script: |
+          cd $CM_BUILD_DIR
+          xcodegen generate
+      - name: Build IPA
+        script: |
+          cd $CM_BUILD_DIR
+          xcode-project build-ipa \
+            --project MODUTABLE.xcodeproj \
+            --scheme MODUTABLE \
+            --archive-path build/MODUTABLE.xcarchive \
+            --export-path build/ipa
+    artifacts:
+      - build/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        issuer_id: $APP_STORE_ISSUER_ID
+        key_id: $APP_STORE_KEY_ID
+        private_key: $APP_STORE_PRIVATE_KEY
+        submit_for_review: false
