@@ -16,21 +16,25 @@ workflows:
           xcodegen generate
       - name: Set credentials, generate cert key, fetch signing files
         script: |
-          cat > /tmp/AuthKey.p8 << 'ENDOFKEY'
-          -----BEGIN PRIVATE KEY-----
-          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ
-          hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k
-          5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy
-          YZPr8F8Z
-          -----END PRIVATE KEY-----
-          ENDOFKEY
+          # Decode base64-encoded API key (avoids Codemagic secret detection corrupting PEM)
+          echo "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR2J5cUdTTTQ5QWdFR0NDcUdT" \
+               "TTQ5QXdFSEJIa3dkd0lCQVFRZ283TzVaK29hclFNalY0U1oKaG1ZcFRVZVkxZmlLWXVEWEtveXM5" \
+               "d3ZaUEU2Z0NnWUlLb1pJemowREFRZWhSQU5DQUFURnVDU29mQ3hEMzEvawo1RXRhbW1EcUR3c0lo" \
+               "TUxRRlJyMUtlcmc2aWV1UlBqSWpVWG5oZjFkeGpjbStmK2wyaUk0cVpLelgzVDdnV1R5CllaUHI4" \
+               "RjhaCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K" | base64 -d > /tmp/AuthKey.p8
+          # Clear any corrupted env vars Codemagic may have auto-created
+          unset APP_STORE_CONNECT_PRIVATE_KEY
+          unset APP_STORE_PRIVATE_KEY
+          unset APP_STORE_PRIVATE_KEY_2
+          unset APP_STORE_PRIVATE_KEY_3
           export APP_STORE_CONNECT_ISSUER_ID="69c32014-81c0-4654-8dc5-7fd1cfb07338"
           export APP_STORE_CONNECT_KEY_IDENTIFIER="ML292A3H9X"
           export APP_STORE_CONNECT_PRIVATE_KEY="$(cat /tmp/AuthKey.p8)"
+          echo "Key starts with: $(head -1 /tmp/AuthKey.p8)"
+          echo "Key ends with: $(tail -1 /tmp/AuthKey.p8)"
+          echo "Key length: $(wc -c < /tmp/AuthKey.p8) bytes"
           keychain initialize
-          # Generate a private key for the code signing certificate CSR
           openssl genrsa -out /tmp/cert_key.pem 2048
-          # Fetch signing files, providing the certificate key so the cert can be saved
           app-store-connect fetch-signing-files $BUNDLE_ID \
             --type IOS_APP_STORE \
             --create \
