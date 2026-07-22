@@ -6,10 +6,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.modutable.app
-      vars:
-        APP_STORE_ISSUER_ID: $APP_STORE_ISSUER_ID
-        APP_STORE_KEY_ID: $APP_STORE_KEY_ID
-        APP_STORE_PRIVATE_KEY: $APP_STORE_PRIVATE_KEY
       xcode: latest
     scripts:
       - name: Install XcodeGen
@@ -31,7 +27,13 @@ workflows:
       - build/ipa/*.ipa
     publishing:
       app_store_connect:
-        issuer_id: $APP_STORE_ISSUER_ID
-        key_id: $APP_STORE_KEY_ID
-        private_key: $APP_STORE_PRIVATE_KEY
+        issuer_id: 69c32014-81c0-4654-8dc5-7fd1cfb07338
+        key_id: ML292A3H9X
+        private_key: |
+          -----BEGIN PRIVATE KEY-----
+          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgo7O5Z+oarQMjV4SZ
+          hmYpTUeY1fiKYuDXKoys9wvZPE6gCgYIKoZIzj0DAQehRANCAATFuCSofCxD31/k
+          5EtammDqDwsIhMLQFRr1Kerg6ieuRPjIjUXnhf1dxjcm+f+l2iI4qZKzX3T7gWTy
+          YZPr8F8Z
+          -----END PRIVATE KEY-----
         submit_for_review: false
